@@ -9,20 +9,24 @@ fn main() {
         "-O3", "-flto", "-march=native", "-mtune=native", "-I", "cpp/",
         "-lpthread", "-lz"
     ];
-    
-    let output = Command::new("g++")
-        .arg("cpp/kseq.cpp")
-        .args(build_args)
-        .arg("-o")
-        .arg("cpp/kseq")
-        .output()
-        .expect("failled to build");
 
-    if !output.status.success() {
-        println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-
-        return ;
+    for i in 10..20 {
+        let output = Command::new("g++")
+            .arg("cpp/kseq.cpp")
+            .args(build_args)
+            .arg("-o")
+            .arg(format!("cpp/kseq_{}", (1<<i).to_string()))
+            .arg("-D")
+            .arg(format!("BUFF_SIZE={}", (1<<i).to_string()))
+            .output()
+            .expect("failled to build");
+        
+        if !output.status.success() {
+            println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+            println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+            
+            return ;
+        }
     }
 
     let output = Command::new("g++")

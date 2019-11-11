@@ -5,7 +5,14 @@
 
 #include "kseq.h"
 
-KSEQ_INIT(gzFile, gzread)
+#ifndef BUFF_SIZE
+#define BUFF_SIZE 16384
+#endif // BUFF_SIZE
+
+KSTREAM_INIT2(static, gzFile, gzread, BUFF_SIZE)
+__KSEQ_TYPE(gzFile)
+__KSEQ_BASIC(static, gzFile)
+__KSEQ_READ(static)
 
 int main(int argc, char *argv[])
 {
