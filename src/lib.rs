@@ -49,6 +49,14 @@ pub fn kseq(filename: &str, buffer_size: usize) -> () {
     command.spawn().expect("Error in subcommand launch").wait().expect("Error in subcommand execution");
 }
 
+pub fn seqan(filename: &str) -> () {
+    let mut command = Command::new("./cpp/seqan");
+    command.arg(filename);
+    command.stdout(std::process::Stdio::null());
+    
+    command.spawn().expect("Error in subcommand launch").wait().expect("Error in subcommand execution");
+}
+
 pub fn bioparser(filename: &str) -> () {
     let mut command = Command::new("./cpp/bioparser");
     command.arg(filename);

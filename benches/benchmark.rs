@@ -15,9 +15,10 @@ fn basic(c: &mut Criterion) {
             .warm_up_time(Duration::from_secs(2))
             .sample_size(10)
             .throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64))
-            .with_function("kseq",  |b| {b.iter(|| kseq(FILENAME, 16384));})
-            .with_function("bioparser",  |b| {b.iter(|| bioparser(FILENAME));})
-            .with_function("rust_bio_buffered", |b| {b.iter(|| rust_bio_buffered(FILENAME, 8192));})
+            .with_function("kseq",                |b| {b.iter(|| kseq(FILENAME, 16384));})
+            .with_function("seqan",               |b| {b.iter(|| seqan(FILENAME));})
+            .with_function("bioparser",           |b| {b.iter(|| bioparser(FILENAME));})
+            .with_function("rust_bio_buffered",   |b| {b.iter(|| rust_bio_buffered(FILENAME, 8192));})
             .with_function("rust_bio_unbuffered", |b| {b.iter(|| rust_bio_unbuffered(FILENAME));})
     );
 }

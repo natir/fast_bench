@@ -43,7 +43,23 @@ fn main() {
 
         return ;
     }
+
+    let output = Command::new("g++")
+        .arg("cpp/seqan.cpp")
+        .args(build_args)
+        .arg("-o")
+        .arg("cpp/seqan")
+        .output()
+        .expect("failled to build");
+
+    if !output.status.success() {
+        println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+
+        return ;
+    }
     
     println!("cargo:rerun-if-changed=cpp/kseq.cpp");
+    println!("cargo:rerun-if-changed=cpp/seqan.cpp");
     println!("cargo:rerun-if-changed=cpp/bioparser.cpp");
 }
