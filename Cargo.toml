@@ -12,6 +12,18 @@ build = "build.rs"
 bio       = "*"
 criterion = "*"
 
+[[bin]]
+name = "fast_bench"
+path = "src/main.rs"
+
+[profile.release]
+debug = true
+lto = 'thin'
+opt-level = 3
+overflow-checks = false
+panic = 'abort'
+incremental = false
+
 [[bench]]
 name = "benchmark"
 harness = false
