@@ -1,7 +1,7 @@
 #include <zlib.h>
 #include <cstdio>
 #include <cstdint>
-#include<iostream>
+#include <iostream>
 
 #include "kseq.h"
 

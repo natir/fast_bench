@@ -1,3 +1,5 @@
+use fast_bench::*;
+
 fn main() {
-    println!("Hello, world!");
+    rust_bio_buffered("nanopore.fasta");
 }

@@ -6,7 +6,7 @@ fn main() {
         "-Wmissing-include-dirs", "-Wswitch-enum", "-Wswitch-default",
         "-Wextra", "-Wall", "-Werror", "-Winvalid-pch", "-Wredundant-decls",
         "-Wformat=2", "-Wmissing-format-attribute", "-Wformat-nonliteral",
-        "-O3", "-flto", "-march=native", "-mtune=native", "-I", "src/",
+        "-O3", "-flto", "-march=native", "-mtune=native", "-I", "cpp/",
         "-lpthread", "-lz"
     ];
     
@@ -24,6 +24,22 @@ fn main() {
 
         return ;
     }
+
+    let output = Command::new("g++")
+        .arg("cpp/bioparser.cpp")
+        .args(build_args)
+        .arg("-o")
+        .arg("cpp/bioparser")
+        .output()
+        .expect("failled to build");
+
+    if !output.status.success() {
+        println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+
+        return ;
+    }
     
     println!("cargo:rerun-if-changed=cpp/kseq.cpp");
+    println!("cargo:rerun-if-changed=cpp/bioparser.cpp");
 }
