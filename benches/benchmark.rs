@@ -14,7 +14,6 @@ fn basic(c: &mut Criterion) {
         "nanopore",
         Benchmark::new("rust_bio_unbuffered", |b| {b.iter(|| rust_bio_unbuffered(FILENAME));})
             .sample_size(10)
-            .measurement_time(Duration::from_secs(60))
             .warm_up_time(Duration::new(2, 0))
             .throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64))
             .with_function("cat",  |b| {b.iter(|| cat(FILENAME));})

@@ -11,10 +11,10 @@ fn main() {
     ];
     
     let output = Command::new("g++")
-        .arg("src/kseq.cpp")
+        .arg("cpp/kseq.cpp")
         .args(build_args)
         .arg("-o")
-        .arg("target/kseq")
+        .arg("cpp/kseq")
         .output()
         .expect("failled to build");
 
@@ -25,5 +25,5 @@ fn main() {
         return ;
     }
     
-    println!("cargo:rerun-if-changed=src/kseq.cpp");
+    println!("cargo:rerun-if-changed=cpp/kseq.cpp");
 }

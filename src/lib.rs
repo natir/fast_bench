@@ -42,7 +42,7 @@ pub fn cat(filename: &str) -> () {
 }
 
 pub fn kseq(filename: &str) -> () {
-    let mut command = Command::new("./target/release/kseq");
+    let mut command = Command::new("./cpp/kseq");
     command.arg(filename);
     command.stdout(std::process::Stdio::null());
 
