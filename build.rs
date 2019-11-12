@@ -10,7 +10,7 @@ fn main() {
         "-lpthread", "-lz"
     ];
 
-    for i in 10..20 {
+    for i in 5..20 {
         let output = Command::new("g++")
             .arg("cpp/kseq.cpp")
             .args(build_args)
