@@ -2,6 +2,32 @@ extern crate bio;
 
 use std::process::Command;
 
+use memmap::MmapOptions;
+
+pub fn memmap(filename: &str) -> () {
+    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
+    
+    let file = std::fs::File::open(filename).expect("Error when we try to open file");
+
+    let mmap = unsafe { MmapOptions::new().map(&file).expect("Error when we try to map file in mem") };
+
+    let mut in_comment = true;
+    for chara in mmap.iter() {
+        if in_comment && *chara == b'\n' {
+            in_comment = false;
+        }
+
+        if !in_comment && *chara == b'>' {
+            in_comment = true;
+        }
+
+        if in_comment {
+            continue;
+        } else {
+            nuc_counter[*chara as usize] += 1;
+        }
+    }
+}
 
 pub fn rust_bio_buffered(filename: &str, buffer_size: usize) -> () {
     let file = std::io::BufReader::with_capacity(buffer_size, std::fs::File::open(filename).expect("Error when we try to open file"));

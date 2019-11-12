@@ -18,6 +18,7 @@ fn basic(c: &mut Criterion) {
             .with_function("kseq",                |b| {b.iter(|| kseq(FILENAME, 16384));})
             .with_function("seqan",               |b| {b.iter(|| seqan(FILENAME));})
             .with_function("bioparser",           |b| {b.iter(|| bioparser(FILENAME));})
+            .with_function("rust_memmap",   |b| {b.iter(|| memmap(FILENAME));})
             .with_function("rust_bio_buffered",   |b| {b.iter(|| rust_bio_buffered(FILENAME, 8192));})
             .with_function("rust_bio_unbuffered", |b| {b.iter(|| rust_bio_unbuffered(FILENAME));})
     );

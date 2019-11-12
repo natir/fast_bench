@@ -10,6 +10,7 @@ build = "build.rs"
 
 [dependencies]
 bio       = "*"
+memmap    = "*"
 criterion = "*"
 
 [[bin]]
