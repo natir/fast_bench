@@ -2,69 +2,63 @@ extern crate bio;
 
 use memmap::MmapOptions;
 
-struct MemmapFastaReader {
-    pub mmap: memmap::Mmap,
-    pub comment_slice: Vec<std::ops::Range<usize>>,
-    pub sequence_slice: Vec<std::ops::Range<usize>>,
+struct MmapFastaReader<'a> {
+    pub mmap: &'a memmap::Mmap,
+    pos: usize,
 }
 
-impl MemmapFastaReader {
-    pub fn new(file: &std::fs::File) -> Self {
-        MemmapFastaReader{
-            mmap: unsafe { MmapOptions::new().map(file).expect("Error when we try to map file in mem") },
-            comment_slice: Vec::new(),
-            sequence_slice: Vec::new(),
+impl<'a> MmapFastaReader<'a> {
+    pub fn new(file: &'a memmap::Mmap) -> Self {
+        MmapFastaReader {
+            mmap: file,
+            pos: 0,
         }
     }
+}
 
-    pub fn parse(&mut self) {
-        let mut begin_comment: usize = 1;
-        let mut end_comment: usize = 0;
-        let mut begin_sequence: usize = 0;
-        let mut end_sequence: usize;
+impl<'a> Iterator for MmapFastaReader<'a> {
+    type Item = (&'a [u8], &'a [u8]);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos == self.mmap.len() {
+            return None;
+        }
         
+        let mut end_comment: usize = 0;
         let mut in_comment = true;
-        for (offset, chara) in self.mmap.iter().enumerate() {
-            if in_comment && *chara == b'\n' {
-                end_comment = offset;
-                begin_sequence = offset + 1; // Sequence begin is next character
-                in_comment = false;
+
+        for (offset, chara) in self.mmap[self.pos..].iter().enumerate() {
+            if !in_comment && *chara == b'>' {
+                let comment = &self.mmap[(self.pos + 1)..end_comment];
+                let sequence = &self.mmap[(end_comment + 1)..(self.pos + offset - 1)];
+
+                self.pos = self.pos + offset;
+                return Some((&comment, &sequence));
             }
 
-            if !in_comment && *chara == b'>' {
-                if begin_comment != end_comment {
-                    end_sequence = offset - 1; // Sequence end is two next character
-                    
-                    self.comment_slice.push(begin_comment..end_comment);
-                    self.sequence_slice.push(begin_sequence..end_sequence);
-
-                    begin_comment = offset + 1; // Comment begin in next character
-                }
-                
-                in_comment = true;
+            if in_comment && *chara == b'\n' {
+                in_comment = false;
+                end_comment = self.pos + offset;
             }
         }
-
-        // The last end_sequence wasn't set
-        end_sequence = self.mmap.len() - 1;
-        self.comment_slice.push(begin_comment..end_comment);
-        self.sequence_slice.push(begin_sequence..end_sequence);
-    } 
+        
+        let comment = &self.mmap[(self.pos + 1)..end_comment];
+        let sequence = &self.mmap[(end_comment + 1)..(self.mmap.len() - 1)];
+        self.pos = self.mmap.len();
+        return Some((&comment, &sequence));
+    }
 }
+
 
 pub fn memmap(filename: &str) -> () {
     let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
-    
+
     let file = std::fs::File::open(filename).expect("Error when we try to open file");
+    let mmap = unsafe { MmapOptions::new().map(&file).expect("Error when we try to map file in mem") };
 
-    let mut mmap = MemmapFastaReader::new(&file);
+    let parser = MmapFastaReader::new(&mmap);
 
-    mmap.parse();
-
-    for (com, seq) in mmap.comment_slice.into_iter().zip(mmap.sequence_slice) {
-        let _comment = &mmap.mmap.as_ref()[com];
-        let sequence = &mmap.mmap.as_ref()[seq];
-        
+    for (_comment, sequence) in parser {
         for nuc in sequence {
             nuc_counter[*nuc as usize] += 1;
         }
