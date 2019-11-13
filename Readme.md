@@ -4,7 +4,7 @@ A fasta parsing benchmark.
 
 ## Setup
 
-You need a [Rust](https://rustup.rs/)
+You need a [Rust](https://rustup.rs/) and [seqtk](https://github.com/lh3/seqtk)
 
 ```sh
 git clone --recurse-submodules -j8 https://github.com/natir/fast_bench.git

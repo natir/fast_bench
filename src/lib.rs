@@ -71,27 +71,12 @@ pub fn memmap(filename: &str) -> () {
     }
 }
 
-pub fn rust_bio_buffered(filename: &str, buffer_size: usize) -> () {
-    let file = std::io::BufReader::with_capacity(buffer_size, std::fs::File::open(filename).expect("Error when we try to open file"));
-
+pub fn rust_bio(filename: &str, buffer_size: usize) -> () {
     let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
-    
-    let reader = bio::io::fasta::Reader::new(file);
-    for r in reader.records() {
-        let result = r.expect("Error when we parse file");
 
-        for nuc in result.seq() {
-            nuc_counter[*nuc as usize] += 1;
-        }
-    }
-}
-
-pub fn rust_bio_unbuffered(filename: &str) -> () {
     let file = std::fs::File::open(filename).expect("Error when we try to open file");
+    let reader = bio::io::fasta::Reader::with_capacity(buffer_size, file);
 
-    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
-    
-    let reader = bio::io::fasta::Reader::new(file);
     for r in reader.records() {
         let result = r.expect("Error when we parse file");
 
