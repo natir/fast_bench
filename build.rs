@@ -5,6 +5,7 @@ fn main() {
     let make = Command::new("make")
         .arg("-C")
         .arg("cpp")
+        .arg("-k")
         .output()
         .expect("failled to build");
     
@@ -17,8 +18,6 @@ fn main() {
     if !make.status.success() {
         println!("stdout: {}", String::from_utf8_lossy(&make.stdout));
         println!("stderr: {}", String::from_utf8_lossy(&make.stderr));
-
-        panic!("Error durring cpp build");
     }
 
     

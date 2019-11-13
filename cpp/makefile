@@ -27,4 +27,4 @@ bin/bioparser: bioparser.cpp
 	$(CXX) $(CXX_FLAG) $(LINK_FLAG) $(BIOPARSER_FLAGS) $< -o $@
 
 bin/seqan: seqan.cpp
-	$(CXX) $(CXX_FLAG) $(LINK_FLAG) $(SEQAN_FLAGS) $< -o $@
+	$(CXX) $(CXX_FLAG) $(LINK_FLAG) $(SEQAN_FLAGS) $< -o $@	
