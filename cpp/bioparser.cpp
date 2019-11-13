@@ -5,7 +5,7 @@
 
 #include <chrono>
 
-#include "bioparser.hpp"
+#include "bioparser/bioparser.hpp"
 
 // define a class for sequences in FASTA format
 namespace bioparser {

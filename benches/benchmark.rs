@@ -23,16 +23,16 @@ fn sample_size() -> usize {
     };
 }
 
-macro_rules! add_in_group {
-    ($name:expr, $path:expr, $filename:ident, $group:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
+macro_rules! create_command {
+    ($path:expr, $filename:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
         let mut $command = std::process::Command::new($path);
         $command.arg($filename);
-            
+        
         let $process = $command
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
             .spawn()
-            .expect(&format!("Unable to start {} process", $name));
+            .expect(&format!("Unable to start {} process", $path));
 
         let mut $stdin = $process
             .stdin
@@ -41,6 +41,12 @@ macro_rules! add_in_group {
             .stdout
             .expect("Unable to get stdout for child process");
         let mut $stdout = std::io::BufReader::new($stdout);
+    );
+}
+
+macro_rules! add_in_group {
+    ($name:expr, $path:expr, $filename:ident, $group:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
+        create_command!($path, $filename, $command, $process, $stdin, $stdout);
         
         $group.bench_function($name, |b| {
             b.iter_custom(|iters| {
@@ -57,22 +63,7 @@ macro_rules! add_in_group {
 
 macro_rules! add_in_group_input {
     ($name:expr, $path:expr, $filename:ident, $input:ident, $group:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
-        let mut $command = std::process::Command::new($path);
-        $command.arg($filename);
-            
-        let $process = $command
-            .stdin(std::process::Stdio::piped())
-            .stdout(std::process::Stdio::piped())
-            .spawn()
-            .expect(&format!("Unable to start {} process", $name));
-
-        let mut $stdin = $process
-            .stdin
-            .expect("Unable to get stdin for child process");
-        let $stdout = $process
-            .stdout
-            .expect("Unable to get stdout for child process");
-        let mut $stdout = std::io::BufReader::new($stdout);
+        create_command!($path, $filename, $command, $process, $stdin, $stdout);
         
         $group.bench_with_input(BenchmarkId::new($name, $input), &$input, |b, &$input| {
             b.iter_custom(|iters| {
@@ -95,9 +86,9 @@ fn basic(c: &mut Criterion) {
     group.sample_size(sample_size());
     group.throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64));
     
-    add_in_group!("kseq", "cpp/kseq_16384", FILENAME, group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
-    add_in_group!("seqan", "cpp/seqan", FILENAME, group, seqan_command, seqan_process, seqan_stdin, seqan_stdout);
-    add_in_group!("bioparser", "cpp/bioparser", FILENAME, group, bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout);
+    add_in_group!("kseq", "cpp/bin/kseq_16384", FILENAME, group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
+    add_in_group!("seqan", "cpp/bin/seqan", FILENAME, group, seqan_command, seqan_process, seqan_stdin, seqan_stdout);
+    add_in_group!("bioparser", "cpp/bin/bioparser", FILENAME, group, bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout);
 
     group.bench_function("rust_memmap",         |b| {b.iter(|| memmap(FILENAME));});
     group.bench_function("rust_bio_buffered",   |b| {b.iter(|| rust_bio_buffered(FILENAME, 8192));});
@@ -116,7 +107,7 @@ fn buffer_size(c: &mut Criterion) {
         let buffer_size = 1 << i;
 
     
-        add_in_group_input!("kseq", &format!("cpp/kseq_{}", buffer_size), FILENAME, buffer_size, group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
+        add_in_group_input!("kseq", &format!("cpp/bin/kseq_{}", buffer_size), FILENAME, buffer_size, group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
         
         group.bench_with_input(BenchmarkId::new("rust_bio_buffered", buffer_size), &buffer_size, |b, &buffer_size| {
             b.iter(|| rust_bio_buffered(FILENAME, buffer_size) );

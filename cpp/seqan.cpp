@@ -1,4 +1,6 @@
-#include <seqan/seq_io.h>
+#include <fstream>
+#include <seqan3/core/debug_stream.hpp>
+#include <seqan3/io/sequence_file/input.hpp>
 
 #include <chrono>
 
@@ -17,16 +19,11 @@ int main(int argc, char *argv[])
 	
       uint64_t nuc_count['T' + 1] = {0};
 
-      seqan::CharString seqFileName = argv[1];
-      seqan::StringSet<seqan::CharString> ids;
-      seqan::StringSet<seqan::Dna5String> seqs;
-
-      seqan::SeqFileIn file_in(seqan::toCString(seqFileName));
-      seqan::readRecords(ids, seqs, file_in);
-
-      for(auto seq: seqs) {
-	for(auto nuc: seq) {
-	  nuc_count[int(nuc)] += 1;
+      std::ifstream input(argv[1], std::ifstream::in);
+      seqan3::sequence_file_input fin{input, seqan3::format_fasta{}};
+      for (auto & rec : fin) {
+	for(auto nuc: seqan3::get<seqan3::field::SEQ>(rec)) {
+	  nuc_count[int(nuc.to_char())] += 1;
 	}
       }
     }
