@@ -12,6 +12,7 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=cpp/makefile");
     println!("cargo:rerun-if-changed=cpp/kseq.cpp");
+    println!("cargo:rerun-if-changed=cpp/kseqpp.cpp");
     println!("cargo:rerun-if-changed=cpp/seqan.cpp");
     println!("cargo:rerun-if-changed=cpp/bioparser.cpp");
     

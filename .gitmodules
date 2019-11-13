@@ -7,3 +7,6 @@
 [submodule "cpp/3party/readfq"]
 	path = cpp/3party/readfq
 	url = https://github.com/lh3/readfq.git
+[submodule "cpp/3party/kseqpp"]
+	path = cpp/3party/kseqpp
+	url = https://github.com/cartoonist/kseqpp.git

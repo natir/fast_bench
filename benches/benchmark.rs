@@ -86,10 +86,16 @@ macro_rules! setup_group {
 
         if std::path::Path::new("cpp/bin/kseq_16384").is_file() {
             add_in_group!("kseq",      "cpp/bin/kseq_16384", FILENAME, $group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
+        }
+
+        if std::path::Path::new("cpp/bin/kseqpp").is_file() {
+            add_in_group!("kseqpp",      "cpp/bin/kseqpp", FILENAME, $group, kseqpp_command, kseqpp_process, kseqpp_stdin, kseqpp_stdout);
         } 
+
         if std::path::Path::new("cpp/bin/seqan").is_file() {
             add_in_group!("seqan",     "cpp/bin/seqan", FILENAME, $group, seqan_command, seqan_process, seqan_stdin, seqan_stdout);
         }
+
         if std::path::Path::new("cpp/bin/bioparser").is_file() {
             add_in_group!("bioparser", "cpp/bin/bioparser", FILENAME, $group, bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout);
         }
