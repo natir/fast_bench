@@ -24,7 +24,6 @@ fn main() {
         if !output.status.success() {
             println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
             println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-            
             return ;
         }
     }
@@ -59,6 +58,7 @@ fn main() {
         return ;
     }
     
+    println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=cpp/kseq.cpp");
     println!("cargo:rerun-if-changed=cpp/seqan.cpp");
     println!("cargo:rerun-if-changed=cpp/bioparser.cpp");

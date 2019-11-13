@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include <chrono>
+
 #include "bioparser.hpp"
 
 // define a class for sequences in FASTA format
@@ -46,27 +48,38 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-  uint64_t nuc_count['T' + 1] = {0};
-
   if(argc != 2) {
-    std::cerr<<"Usage kseq <fasta file>"<<std::endl;
+    std::cerr<<"Usage bioparser <fasta file>"<<std::endl;
     return -1;
   }
-    
-  std::vector<std::unique_ptr<Sequence>> fasta_objects;
-  auto fasta_parser = bioparser::createParser<bioparser::FastaParser, Sequence>(argv[1]);
 
-  while(true) {    
-    auto status = fasta_parser->parse(fasta_objects, -1);
+  for (std::string line; std::getline(std::cin, line);) {
+    unsigned long iters = std::stoul(line);
+
+    auto begin = std::chrono::system_clock::now();
+
+    for(long unsigned i = 0; i != iters; i++) {
+      uint64_t nuc_count['T' + 1] = {0};
+
+      std::vector<std::unique_ptr<Sequence>> fasta_objects;
+      auto fasta_parser = bioparser::createParser<bioparser::FastaParser, Sequence>(argv[1]);
+
+      while(true) {    
+	auto status = fasta_parser->parse(fasta_objects, -1);
     
-    for(auto const& seq: fasta_objects) {
-      for(auto nuc: seq->data()) {
-	nuc_count[int(nuc)] += 1;
+	for(auto const& seq: fasta_objects) {
+	  for(auto nuc: seq->data()) {
+	    nuc_count[int(nuc)] += 1;
+	  }
+	}
+
+	if(!status) {
+	  break;
+	}
       }
     }
-
-    if(!status) {
-      break;
-    }
+    std::cout<<std::chrono::nanoseconds(std::chrono::system_clock::now() - begin).count()<<std::endl;
   }
+  
+  return 0;
 }

@@ -1,7 +1,5 @@
 extern crate bio;
 
-use std::process::Command;
-
 use memmap::MmapOptions;
 
 struct MemmapFastaReader {
@@ -23,7 +21,7 @@ impl MemmapFastaReader {
         let mut begin_comment: usize = 1;
         let mut end_comment: usize = 0;
         let mut begin_sequence: usize = 0;
-        let mut end_sequence: usize = 0;
+        let mut end_sequence: usize;
         
         let mut in_comment = true;
         for (offset, chara) in self.mmap.iter().enumerate() {
@@ -64,7 +62,7 @@ pub fn memmap(filename: &str) -> () {
     mmap.parse();
 
     for (com, seq) in mmap.comment_slice.into_iter().zip(mmap.sequence_slice) {
-        let comment = &mmap.mmap.as_ref()[com];
+        let _comment = &mmap.mmap.as_ref()[com];
         let sequence = &mmap.mmap.as_ref()[seq];
         
         for nuc in sequence {
@@ -101,36 +99,4 @@ pub fn rust_bio_unbuffered(filename: &str) -> () {
             nuc_counter[*nuc as usize] += 1;
         }
     }
-}
-
-pub fn cat(filename: &str) -> () {
-    let mut command = Command::new("cat");
-    command.arg(filename);
-    command.stdout(std::process::Stdio::null());
-
-    command.spawn().expect("Error in subcommand launch").wait().expect("Error in subcommand execution");
-}
-
-pub fn kseq(filename: &str, buffer_size: usize) -> () {
-    let mut command = Command::new(format!("./cpp/kseq_{}", buffer_size));
-    command.arg(filename);
-    command.stdout(std::process::Stdio::null());
-    
-    command.spawn().expect("Error in subcommand launch").wait().expect("Error in subcommand execution");
-}
-
-pub fn seqan(filename: &str) -> () {
-    let mut command = Command::new("./cpp/seqan");
-    command.arg(filename);
-    command.stdout(std::process::Stdio::null());
-    
-    command.spawn().expect("Error in subcommand launch").wait().expect("Error in subcommand execution");
-}
-
-pub fn bioparser(filename: &str) -> () {
-    let mut command = Command::new("./cpp/bioparser");
-    command.arg(filename);
-    command.stdout(std::process::Stdio::null());
-
-    command.spawn().expect("Error in subcommand launch").wait().expect("Error in subcommand execution");
 }

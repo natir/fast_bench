@@ -13,10 +13,6 @@ bio       = "*"
 memmap    = "*"
 criterion = "*"
 
-[[bin]]
-name = "fast_bench"
-path = "src/main.rs"
-
 [profile.release]
 debug = true
 lto = 'thin'
