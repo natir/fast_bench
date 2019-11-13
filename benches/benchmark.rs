@@ -78,25 +78,48 @@ macro_rules! add_in_group_input {
     );
 }
 
-fn basic(c: &mut Criterion) {
-    static FILENAME: &str = "nanopore.fasta";
+macro_rules! setup_group {
+    ($group:ident) => (
+        $group.warm_up_time(warmup_time());
+        $group.sample_size(sample_size());
+        $group.throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64));
+        
+        add_in_group!("kseq", "cpp/bin/kseq_16384", FILENAME, $group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
+        add_in_group!("seqan", "cpp/bin/seqan", FILENAME, $group, seqan_command, seqan_process, seqan_stdin, seqan_stdout);
+        add_in_group!("bioparser", "cpp/bin/bioparser", FILENAME, $group, bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout);
 
-    let mut group = c.benchmark_group("default");
-    group.warm_up_time(warmup_time());
-    group.sample_size(sample_size());
-    group.throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64));
-    
-    add_in_group!("kseq", "cpp/bin/kseq_16384", FILENAME, group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
-    add_in_group!("seqan", "cpp/bin/seqan", FILENAME, group, seqan_command, seqan_process, seqan_stdin, seqan_stdout);
-    add_in_group!("bioparser", "cpp/bin/bioparser", FILENAME, group, bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout);
+        $group.bench_function("rust_memmap",         |b| {b.iter(|| memmap(FILENAME));});
+        $group.bench_function("rust_bio_buffered",   |b| {b.iter(|| rust_bio_buffered(FILENAME, 8192));});
+        $group.bench_function("rust_bio_unbuffered", |b| {b.iter(|| rust_bio_unbuffered(FILENAME));});
+    );
+}
 
-    group.bench_function("rust_memmap",         |b| {b.iter(|| memmap(FILENAME));});
-    group.bench_function("rust_bio_buffered",   |b| {b.iter(|| rust_bio_buffered(FILENAME, 8192));});
-    group.bench_function("rust_bio_unbuffered", |b| {b.iter(|| rust_bio_unbuffered(FILENAME));});
+fn reference(c: &mut Criterion) {
+    static FILENAME: &str = "sequences/reference.fasta";
+
+    let mut group = c.benchmark_group("reference");
+
+    setup_group!(group);
+}
+
+fn illumina(c: &mut Criterion) {
+    static FILENAME: &str = "sequences/illumina.fasta";
+
+    let mut group = c.benchmark_group("illumina");
+
+    setup_group!(group);
+}
+
+fn nanopore(c: &mut Criterion) {
+    static FILENAME: &str = "sequences/nanopore.fasta";
+
+    let mut group = c.benchmark_group("nanopore");
+
+    setup_group!(group);
 }
 
 fn buffer_size(c: &mut Criterion) {
-    static FILENAME: &str = "nanopore.fasta";
+    static FILENAME: &str = "sequences/nanopore.fasta";
 
     let mut group = c.benchmark_group("buffer_size");
     group.warm_up_time(warmup_time());
@@ -115,6 +138,6 @@ fn buffer_size(c: &mut Criterion) {
     }
 }
 
-criterion_group!(b, basic, buffer_size);
+criterion_group!(b, reference, illumina, nanopore, buffer_size);
 criterion_main!(b);
 

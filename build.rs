@@ -2,7 +2,7 @@ use std::process::Command;
 
 fn main() {
 
-    let output = Command::new("make")
+    let make = Command::new("make")
         .arg("-C")
         .arg("cpp")
         .output()
@@ -14,10 +14,12 @@ fn main() {
     println!("cargo:rerun-if-changed=cpp/seqan.cpp");
     println!("cargo:rerun-if-changed=cpp/bioparser.cpp");
     
-    if !output.status.success() {
-        println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    if !make.status.success() {
+        println!("stdout: {}", String::from_utf8_lossy(&make.stdout));
+        println!("stderr: {}", String::from_utf8_lossy(&make.stderr));
 
         panic!("Error durring cpp build");
     }
+
+    
 }
