@@ -24,9 +24,11 @@ fn sample_size() -> usize {
 }
 
 macro_rules! create_command {
-    ($path:expr, $filename:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
+    ($path:expr, $command:ident, $process:ident, $stdin:ident, $stdout:ident, $($args:expr), *) => (
         let mut $command = std::process::Command::new($path);
-        $command.arg($filename);
+        $(
+            $command.arg($args);
+        )*
         
         let $process = $command
             .stdin(std::process::Stdio::piped())
@@ -45,9 +47,7 @@ macro_rules! create_command {
 }
 
 macro_rules! add_in_group {
-    ($name:expr, $path:expr, $filename:ident, $group:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
-        create_command!($path, $filename, $command, $process, $stdin, $stdout);
-        
+    ($name:expr, $group:ident, $stdin:ident, $stdout:ident) => (
         $group.bench_function($name, |b| {
             b.iter_custom(|iters| {
                 writeln!($stdin, "{}", iters).expect("Unable to send iteration count to child process");
@@ -58,13 +58,11 @@ macro_rules! add_in_group {
                 Duration::from_nanos(u64::from_str(line.trim()).expect("Unable to parse time from child process"))
             })
         });
-    );
+    )
 }
 
 macro_rules! add_in_group_input {
-    ($name:expr, $path:expr, $filename:ident, $input:ident, $group:ident, $command:ident, $process:ident, $stdin:ident, $stdout:ident) => (
-        create_command!($path, $filename, $command, $process, $stdin, $stdout);
-        
+    ($name:expr, $input:ident, $group:ident, $stdin:ident, $stdout:ident) => (
         $group.bench_with_input(BenchmarkId::new($name, $input), &$input, |b, &$input| {
             b.iter_custom(|iters| {
                 writeln!($stdin, "{}", iters).expect("Unable to send iteration count to child process");
@@ -85,19 +83,23 @@ macro_rules! setup_group {
         $group.throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64));
 
         if std::path::Path::new("cpp/bin/kseq_16384").is_file() {
-            add_in_group!("kseq",      "cpp/bin/kseq_16384", FILENAME, $group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
+            create_command!("cpp/bin/kseq_16384", kseq_command, kseq_process, kseq_stdin, kseq_stdout, FILENAME);
+            add_in_group!("kseq", $group, kseq_stdin, kseq_stdout);
         }
 
         if std::path::Path::new("cpp/bin/kseqpp").is_file() {
-            add_in_group!("kseqpp",      "cpp/bin/kseqpp", FILENAME, $group, kseqpp_command, kseqpp_process, kseqpp_stdin, kseqpp_stdout);
+            create_command!("cpp/bin/kseqpp", kseqpp_command, kseqpp_process, kseqpp_stdin, kseqpp_stdout, FILENAME, "131072");
+            add_in_group!("kseqpp", $group, kseqpp_stdin, kseqpp_stdout);
         } 
 
         if std::path::Path::new("cpp/bin/seqan").is_file() {
-            add_in_group!("seqan",     "cpp/bin/seqan", FILENAME, $group, seqan_command, seqan_process, seqan_stdin, seqan_stdout);
+            create_command!("cpp/bin/seqan", seqan_command, seqan_process, seqan_stdin, seqan_stdout, FILENAME);
+            add_in_group!("seqan", $group, seqan_stdin, seqan_stdout);
         }
 
         if std::path::Path::new("cpp/bin/bioparser").is_file() {
-            add_in_group!("bioparser", "cpp/bin/bioparser", FILENAME, $group, bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout);
+            create_command!("cpp/bin/bioparser", bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout, FILENAME);
+            add_in_group!("bioparser", $group, bioparser_stdin, bioparser_stdout);
         }
             
         $group.bench_function("rust_bio",    |b| {b.iter(|| rust_bio(FILENAME, 8192));});
@@ -138,11 +140,16 @@ fn buffer_size(c: &mut Criterion) {
     group.throughput(Throughput::Bytes(std::fs::metadata(FILENAME).unwrap().len() as u64));
     
     for i in 5..20 {
-        let buffer_size = 1 << i;
+        let buffer_size: usize = 1 << i;
 
 
         if std::path::Path::new(&format!("cpp/bin/kseq_{}", buffer_size)).is_file() {    
-            add_in_group_input!("kseq", &format!("cpp/bin/kseq_{}", buffer_size), FILENAME, buffer_size, group, kseq_command, kseq_process, kseq_stdin, kseq_stdout);
+            create_command!(&format!("cpp/bin/kseq_{}", buffer_size), kseq_command, kseq_process, kseq_stdin, kseq_stdout, FILENAME);
+            add_in_group_input!("kseq", buffer_size, group, kseq_stdin, kseq_stdout);
+        }
+        if std::path::Path::new("cpp/bin/kseqpp").is_file() {    
+            create_command!("cpp/bin/kseqpp", kseq_command, kseq_process, kseq_stdin, kseq_stdout, FILENAME, buffer_size.to_string());
+            add_in_group_input!("kseqpp", buffer_size, group, kseq_stdin, kseq_stdout);
         }
         group.bench_with_input(BenchmarkId::new("rust_bio", buffer_size), &buffer_size, |b, &buffer_size| {
             b.iter(|| rust_bio(FILENAME, buffer_size) );

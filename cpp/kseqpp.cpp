@@ -3,9 +3,15 @@
 #include "kseq++.h"
 
 int main(int argc, char* argv[]) {
-  if(argc != 2) {
-    std::cerr<<"Usage kseq <fasta file>"<<std::endl;
+  unsigned int buffer_size = 131072;
+
+  if(argc > 3 && argc < 2) {
+    std::cerr<<"Usage kseqpp <fasta file> [buffer size]"<<std::endl;
     return -1;
+  }
+
+  if(argc == 3) {
+    buffer_size = std::stoul(argv[2]);
   }
 
   for (std::string line; std::getline(std::cin, line);) {
@@ -18,7 +24,7 @@ int main(int argc, char* argv[]) {
 
       klibpp::KSeq record;
       gzFile fp = gzopen(argv[1], "r");
-      auto ks = klibpp::make_kstream(fp, gzread, klibpp::mode::in);
+      auto ks = klibpp::make_kstream(fp, gzread, klibpp::mode::in, buffer_size);
 
       while (ks >> record) {
 	for(auto nuc: record.seq) {
