@@ -9,9 +9,10 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bio       = { git = "https://github.com/natir/rust-bio.git" }
-memmap    = "*"
-criterion = "*"
+bio            = { git = "https://github.com/natir/rust-bio.git" }
+memmap         = "*"
+criterion      = "*"
+buf-ref-reader = "*"
 
 [profile.release]
 debug = true

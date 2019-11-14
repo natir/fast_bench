@@ -2,21 +2,21 @@ extern crate bio;
 
 use memmap::MmapOptions;
 
-struct MmapFastaReader<'a> {
+struct MemmapFastaReader<'a> {
     pub mmap: &'a memmap::Mmap,
     pos: usize,
 }
 
-impl<'a> MmapFastaReader<'a> {
+impl<'a> MemmapFastaReader<'a> {
     pub fn new(file: &'a memmap::Mmap) -> Self {
-        MmapFastaReader {
+        MemmapFastaReader {
             mmap: file,
             pos: 0,
         }
     }
 }
 
-impl<'a> Iterator for MmapFastaReader<'a> {
+impl<'a> Iterator for MemmapFastaReader<'a> {
     type Item = (&'a [u8], &'a [u8]);
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -49,18 +49,46 @@ impl<'a> Iterator for MmapFastaReader<'a> {
     }
 }
 
-
 pub fn memmap(filename: &str) -> () {
     let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
 
     let file = std::fs::File::open(filename).expect("Error when we try to open file");
     let mmap = unsafe { MmapOptions::new().map(&file).expect("Error when we try to map file in mem") };
 
-    let parser = MmapFastaReader::new(&mmap);
+    let parser = MemmapFastaReader::new(&mmap);
 
     for (_comment, sequence) in parser {
         for nuc in sequence {
             nuc_counter[*nuc as usize] += 1;
+        }
+    }
+}
+
+pub fn buf_ref_reader(filename: &str, buffer_size: usize) -> () {
+    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) +1];
+
+    let file = std::fs::File::open(filename).expect("Error when we try to open file");
+
+    let mut mmap = buf_ref_reader::BufRefReaderBuilder::new(file).capacity(buffer_size).build::<buf_ref_reader::MmapBuffer>().unwrap();
+
+    let mut counter = -1;
+    loop {
+        counter += 1;
+        
+        if counter % 2 == 0 {
+            if let Ok(Some(line)) = mmap.read_until(b'\n') {
+                continue;
+            } else {
+                break;
+            }         
+        }
+        
+        if let Ok(Some(line)) = mmap.read_until(b'\n') {
+            for nuc in line {
+                nuc_counter[*nuc as usize] += 1;
+            }
+        } else {
+            break;
         }
     }
 }
