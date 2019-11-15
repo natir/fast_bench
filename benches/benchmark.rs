@@ -101,10 +101,15 @@ macro_rules! setup_group {
             create_command!("cpp/bin/bioparser", bioparser_command, bioparser_process, bioparser_stdin, bioparser_stdout, FILENAME);
             add_in_group!("bioparser", $group, bioparser_stdin, bioparser_stdout);
         }
-            
+
+        if std::path::Path::new("golang/bin/go_bio").is_file() {
+            create_command!("golang/bin/go_bio", go_bio_command, go_bio_process, go_bio_stdin, go_bio_stdout, FILENAME);
+            add_in_group!("go_bio", $group, go_bio_stdin, go_bio_stdout);
+        }
+        
         $group.bench_function("rust_bio",    |b| {b.iter(|| rust_bio(FILENAME, 8192));});
-        $group.bench_function("rust_memmap", |b| {b.iter(|| memmap(FILENAME));});
-        $group.bench_function("rust_bufref_map", |b| {b.iter(|| buf_ref_reader(FILENAME, 8*1024));});
+        $group.bench_function("memmap", |b| {b.iter(|| memmap(FILENAME));});
+        $group.bench_function("buf_ref_map", |b| {b.iter(|| buf_ref_reader(FILENAME, 8*1024));});
     );
 }
 
