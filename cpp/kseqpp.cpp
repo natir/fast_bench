@@ -1,5 +1,8 @@
 #include <iostream>
-#include <zlib.h>
+
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "kseq++.h"
 
 int main(int argc, char* argv[]) {
@@ -23,14 +26,16 @@ int main(int argc, char* argv[]) {
       uint64_t nuc_count['T' + 1] = {0};
 
       klibpp::KSeq record;
-      gzFile fp = gzopen(argv[1], "r");
-      auto ks = klibpp::make_kstream(fp, gzread, klibpp::mode::in, buffer_size);
+      int fp = open(argv[1], O_RDONLY);
+      auto ks = klibpp::make_kstream(fp, read, klibpp::mode::in, buffer_size);
 
       while (ks >> record) {
 	for(auto nuc: record.seq) {
 	  nuc_count[int(nuc)] += 1;
 	}
       }
+
+      close(fp);
     }
 
     std::cout<<std::chrono::nanoseconds(std::chrono::system_clock::now() - begin).count()<<std::endl;

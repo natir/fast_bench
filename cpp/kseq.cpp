@@ -1,7 +1,9 @@
-#include <zlib.h>
 #include <cstdio>
 #include <cstdint>
 #include <iostream>
+
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <chrono>
 
@@ -11,9 +13,9 @@
 #define BUFF_SIZE 16384
 #endif // BUFF_SIZE
 
-KSTREAM_INIT2(static, gzFile, gzread, BUFF_SIZE)
-__KSEQ_TYPE(gzFile)
-__KSEQ_BASIC(static, gzFile)
+KSTREAM_INIT2(static, int, read, BUFF_SIZE)
+__KSEQ_TYPE(int)
+__KSEQ_BASIC(static, int)
 __KSEQ_READ(static)
 
 int main(int argc, char *argv[]) {
@@ -28,12 +30,11 @@ int main(int argc, char *argv[]) {
     auto begin = std::chrono::system_clock::now();
 
     for(long unsigned i = 0; i != iters; i++) {
-      gzFile fp;
       kseq_t *seq;
   
       uint64_t nuc_count['T' + 1] = {0};
   
-      fp = gzopen(argv[1], "r");
+      int fp = open(argv[1], O_RDONLY);
       seq = kseq_init(fp);
 
       while (kseq_read(seq) >= 0) {
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
       }
 
       kseq_destroy(seq);
-      gzclose(fp);
+      close(fp);
     }
     
     std::cout<<std::chrono::nanoseconds(std::chrono::system_clock::now() - begin).count()<<std::endl;
