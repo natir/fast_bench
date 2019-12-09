@@ -110,6 +110,7 @@ macro_rules! setup_group {
         $group.bench_function("rust_bio",    |b| {b.iter(|| rust_bio(FILENAME, 8192));});
         $group.bench_function("memmap", |b| {b.iter(|| memmap(FILENAME));});
         $group.bench_function("buf_ref_map", |b| {b.iter(|| buf_ref_reader(FILENAME, 8*1024));});
+        $group.bench_function("rust_needletail", |b| {b.iter(|| rust_needletail(FILENAME));});
     );
 }
 

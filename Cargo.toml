@@ -12,6 +12,7 @@ build = "build.rs"
 bio            = { git = "https://github.com/natir/rust-bio.git" }
 memmap         = "*"
 criterion      = "*"
+needletail     = "0.3.2"
 buf-ref-reader = "*"
 
 [profile.release]

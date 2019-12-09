@@ -2,7 +2,7 @@ CXX=g++
 
 CXX_FLAG=-Wredundant-decls -Wcast-align -Wmissing-declarations -Wmissing-include-dirs -Wswitch-enum -Wswitch-default -Wextra -Wall -Werror -Winvalid-pch -Wredundant-decls -Wformat=2 -Wmissing-format-attribute -Wformat-nonliteral -O3 -flto -march=native -mtune=native
 
-LINK_FLAG=-lpthread -lz
+LINK_FLAG=-lpthread
 
 KSEQ_PATH=3party/readfq
 KSEQ_INC=-I $(KSEQ_PATH)
@@ -15,11 +15,11 @@ KSEQPP_FLAGS=$(KSEQPP_INC)
 
 BIOPARSER_PATH=3party/bioparser
 BIOPARSER_INC=-I $(BIOPARSER_PATH)/include/
-BIOPARSER_FLAGS=$(BIOPARSER_INC)
+BIOPARSER_FLAGS=$(BIOPARSER_INC) -lz
 
 SEQAN_PATH=3party/seqan
 SEQAN_INC=-I $(SEQAN_PATH)/include/ -isystem $(SEQAN_PATH)/submodules/range-v3/include -isystem $(SEQAN_PATH)/submodules/sdsl-lite/include -isystem $(SEQAN_PATH)/submodules/cereal/include
-SEQAN_FLAGS=$(SEQAN_INC) -DNDEBUG -DSEQAN3_HAS_ZLIB=1 -std=c++17 -fconcepts -Wno-error=switch-default -Wno-error=switch-enum
+SEQAN_FLAGS=$(SEQAN_INC) -DNDEBUG -std=c++17 -fconcepts -Wno-error=switch-default -Wno-error=switch-enum
 
 all: $(KSEQ_TARGET) bin/kseqpp bin/bioparser bin/seqan
 

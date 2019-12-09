@@ -1,4 +1,7 @@
 extern crate bio;
+extern crate needletail;
+
+use needletail::Sequence;
 
 use memmap::MmapOptions;
 
@@ -76,7 +79,7 @@ pub fn buf_ref_reader(filename: &str, buffer_size: usize) -> () {
         counter += 1;
         
         if counter % 2 == 0 {
-            if let Ok(Some(line)) = mmap.read_until(b'\n') {
+            if let Ok(Some(_)) = mmap.read_until(b'\n') {
                 continue;
             } else {
                 break;
@@ -106,4 +109,18 @@ pub fn rust_bio(filename: &str, buffer_size: usize) -> () {
             nuc_counter[*nuc as usize] += 1;
         }
     }
+}
+
+pub fn rust_needletail(filename: &str) -> () {
+    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
+
+    needletail::parse_sequence_path(
+	filename,
+	|_| {},
+	|seq| {
+	    for nuc in seq.sequence() {
+		nuc_counter[*nuc as usize] += 1;
+	    }
+	}
+    ).expect("Parsing failed");
 }
