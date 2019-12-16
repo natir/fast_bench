@@ -1,9 +1,14 @@
 extern crate bio;
+extern crate seq_io;
 extern crate needletail;
 
 use needletail::Sequence;
 
+use seq_io::fasta::Record;
+
 use memmap::MmapOptions;
+
+mod fasten_like;
 
 struct MemmapFastaReader<'a> {
     pub mmap: &'a memmap::Mmap,
@@ -111,7 +116,7 @@ pub fn rust_bio(filename: &str, buffer_size: usize) -> () {
     }
 }
 
-pub fn rust_needletail(filename: &str) -> () {
+pub fn needletail(filename: &str) -> () {
     let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
 
     needletail::parse_sequence_path(
@@ -124,3 +129,32 @@ pub fn rust_needletail(filename: &str) -> () {
 	}
     ).expect("Parsing failed");
 }
+
+pub fn seq_io(filename: &str) -> () {
+    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
+
+    let file = std::fs::File::open(filename).expect("Error when we try to open file");
+    let mut reader = seq_io::fasta::Reader::new(file);
+
+    while let Some(result) = reader.next() {
+        let record = result.unwrap();
+
+        for nuc in record.seq() {
+	    nuc_counter[*nuc as usize] += 1;
+	}
+    }
+}
+
+pub fn fasten_like(filename: &str) -> () {
+    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
+
+    let file = std::fs::File::open(filename).expect("Error when we try to open file");
+    let mut reader = fasten_like::FastaReader::new(file);
+
+    while let Some(record) = reader.next() {
+        for nuc in record.seq.bytes() {
+	    nuc_counter[nuc as usize] += 1;
+	}
+    }
+}
+

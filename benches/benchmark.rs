@@ -110,7 +110,9 @@ macro_rules! setup_group {
         $group.bench_function("rust_bio",    |b| {b.iter(|| rust_bio(FILENAME, 8192));});
         $group.bench_function("memmap", |b| {b.iter(|| memmap(FILENAME));});
         $group.bench_function("buf_ref_map", |b| {b.iter(|| buf_ref_reader(FILENAME, 8*1024));});
-        $group.bench_function("rust_needletail", |b| {b.iter(|| rust_needletail(FILENAME));});
+        $group.bench_function("needletail", |b| {b.iter(|| needletail(FILENAME));});
+        $group.bench_function("seq_io", |b| {b.iter(|| seq_io(FILENAME));});
+        $group.bench_function("fasten", |b| {b.iter(|| seq_io(FILENAME));});
     );
 }
 
@@ -161,7 +163,7 @@ fn buffer_size(c: &mut Criterion) {
         group.bench_with_input(BenchmarkId::new("rust_bio", buffer_size), &buffer_size, |b, &buffer_size| {
             b.iter(|| rust_bio(FILENAME, buffer_size) );
         });
-        group.bench_with_input(BenchmarkId::new("rust_bufref_map", buffer_size), &buffer_size, |b, &buffer_size| {
+        group.bench_with_input(BenchmarkId::new("buf_ref_map", buffer_size), &buffer_size, |b, &buffer_size| {
             b.iter(|| buf_ref_reader(FILENAME, buffer_size));
         });
     }
