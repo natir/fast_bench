@@ -3,10 +3,10 @@ use std::io::prelude::*;
 use std::io::BufReader;
 
 pub struct FastaReader<R: io::Read> {
-    reader:           io::BufReader<R>,
+    reader: io::BufReader<R>,
 }
 
-impl<R: io::Read> FastaReader<R>{
+impl<R: io::Read> FastaReader<R> {
     pub fn new(reader: R) -> FastaReader<R> {
         FastaReader {
             reader: BufReader::new(reader),
@@ -15,15 +15,15 @@ impl<R: io::Read> FastaReader<R>{
 }
 
 pub struct Seq {
-    pub id:     String,
-    pub seq:    String,
+    pub id: String,
+    pub seq: String,
 }
 
 impl Seq {
-    fn new (id: &String, seq: &String) -> Seq{
+    fn new(id: &String, seq: &String) -> Seq {
         Seq {
-            id:     id.clone(),
-            seq:    seq.clone(),
+            id: id.clone(),
+            seq: seq.clone(),
         }
     }
 }
@@ -32,8 +32,8 @@ impl<R: Read> Iterator for FastaReader<R> {
     type Item = Seq;
 
     fn next(&mut self) -> Option<Seq> {
-        let mut id=    String::new();
-        let mut seq=   String::new();
+        let mut id = String::new();
+        let mut seq = String::new();
 
         // Read the ID of the entry
         match self.reader.read_line(&mut id) {
@@ -46,15 +46,16 @@ impl<R: Read> Iterator for FastaReader<R> {
                 }
             }
             Err(error) => {
-                panic!("ERROR: could not read the ID line: {}",error);
+                panic!("ERROR: could not read the ID line: {}", error);
             }
         };
 
-        self.reader.read_line(&mut seq).expect("ERROR: could not read sequence line");
-        
+        self.reader
+            .read_line(&mut seq)
+            .expect("ERROR: could not read sequence line");
+
         let seq = Seq::new(&id, &seq);
 
         return Some(seq);
     }
 }
-
