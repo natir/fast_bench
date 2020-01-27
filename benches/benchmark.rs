@@ -113,6 +113,7 @@ macro_rules! setup_group {
         $group.bench_function("needletail", |b| {b.iter(|| needletail(FILENAME));});
         $group.bench_function("seq_io", |b| {b.iter(|| seq_io(FILENAME));});
         $group.bench_function("fasten", |b| {b.iter(|| seq_io(FILENAME));});
+        $group.bench_function("multithread", |b| {b.iter(|| multithread(FILENAME, 8*1024));});
     );
 }
 

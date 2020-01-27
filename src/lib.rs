@@ -118,7 +118,7 @@ pub fn rust_bio(filename: &str, buffer_size: usize) -> () {
 
 pub fn needletail(filename: &str) -> () {
     let mut nuc_counter: [u64; 85] = [0; ('T' as usize) + 1];
-
+    
     needletail::parse_sequence_path(
 	filename,
 	|_| {},
@@ -156,5 +156,57 @@ pub fn fasten_like(filename: &str) -> () {
 	    nuc_counter[nuc as usize] += 1;
 	}
     }
+}
+
+
+use std::thread;
+use std::sync::mpsc::channel;
+
+pub fn multithread(filename: &str, buffer_size: usize) {
+    let mut nuc_counter: [u64; 85] = [0; ('T' as usize) +1];
+
+    let (sender, receiver) = channel();
+
+    let filename2 = filename.to_string();
+    thread::spawn(move || {
+	buf_ref_reader_on_separate_thread(filename2, buffer_size, &sender);
+    });
+    
+    while let Ok(message) = receiver.recv() {
+	if let Some(line) = message {
+	    for nuc in line.bytes() {
+		nuc_counter[nuc as usize] += 1;
+	    }
+	}
+    }
+}
+
+pub fn buf_ref_reader_on_separate_thread(filename: String, buffer_size: usize, sender: &std::sync::mpsc::Sender<Option<String>>) -> () {
+    let file = std::fs::File::open(filename).expect("Error when we try to open file");
+
+    let mut mmap = buf_ref_reader::BufRefReaderBuilder::new(file).capacity(buffer_size).build::<buf_ref_reader::MmapBuffer>().unwrap();
+
+    let mut counter = -1;
+    loop {
+        counter += 1;
+        
+        if counter % 2 == 0 {
+            if let Ok(Some(_)) = mmap.read_until(b'\n') {
+                continue;
+            } else {
+                break;
+            }
+	}
+
+	if let Ok(Some(line)) = mmap.read_until(b'\n') {
+	    unsafe {
+		sender.send(Some(String::from_utf8_unchecked(line.to_vec()))).unwrap();
+	    }
+	} else {
+            break;
+	}
+    }
+
+    sender.send(None).unwrap();
 }
 
