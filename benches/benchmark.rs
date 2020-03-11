@@ -181,6 +181,12 @@ macro_rules! setup_group {
         $group.bench_function("multithread", |b| {
             b.iter(|| multithread(FILENAME, 8 * 1024));
         });
+	$group.bench_function("tokio", |b| {
+            b.iter(|| tokio_nuc_counter::read(FILENAME));
+        });
+	$group.bench_function("futures_stream", |b| {
+            b.iter(|| buf_ref_stream(FILENAME, 8 * 1024));
+        });
     };
 }
 
@@ -252,6 +258,7 @@ fn buffer_size(c: &mut Criterion) {
                 b.iter(|| rust_bio(FILENAME, buffer_size));
             },
         );
+	
         group.bench_with_input(
             BenchmarkId::new("rust_bufref_map", buffer_size),
             &buffer_size,
@@ -262,5 +269,69 @@ fn buffer_size(c: &mut Criterion) {
     }
 }
 
-criterion_group!(b, reference, illumina, nanopore, buffer_size);
+fn rust_bio_cache_nanopore(c: &mut Criterion) {
+    let mut g1 = c.benchmark_group("rust_bio");
+    g1.warm_up_time(warmup_time());
+    g1.sample_size(sample_size());
+    g1.throughput(Throughput::Bytes(
+        std::fs::metadata("sequences/nanopore.fasta").unwrap().len() as u64,
+    ));
+
+    for i in 8..24 {
+        let buffer_size: usize = 1 << i;
+
+	g1.bench_with_input(
+            BenchmarkId::new("nanopore", buffer_size),
+            &buffer_size,
+            |b, &buffer_size| {
+                b.iter(|| rust_bio("sequences/nanopore.fasta", buffer_size));
+            },
+        );
+    }
+}
+
+fn rust_bio_cache_illumina(c: &mut Criterion) {
+    let mut g2 = c.benchmark_group("rust_bio");
+    g2.warm_up_time(warmup_time());
+    g2.sample_size(sample_size());
+    g2.throughput(Throughput::Bytes(
+        std::fs::metadata("sequences/illumina.fasta").unwrap().len() as u64,
+    ));
+
+    for i in 8..24 {
+        let buffer_size: usize = 1 << i;
+
+	g2.bench_with_input(
+            BenchmarkId::new("illumina", buffer_size),
+            &buffer_size,
+            |b, &buffer_size| {
+                b.iter(|| rust_bio("sequences/illumina.fasta", buffer_size));
+            },
+        );
+    }
+}
+
+fn rust_bio_cache_reference(c: &mut Criterion) {
+    let mut g3 = c.benchmark_group("rust_bio");
+    g3.warm_up_time(warmup_time());
+    g3.sample_size(sample_size());
+    g3.throughput(Throughput::Bytes(
+        std::fs::metadata("sequences/reference.fasta").unwrap().len() as u64,
+    ));
+
+    for i in 8..24 {
+        let buffer_size: usize = 1 << i;
+	
+	g3.bench_with_input(
+	    BenchmarkId::new("reference", buffer_size),
+            &buffer_size,
+            |b, &buffer_size| {
+                b.iter(|| rust_bio("sequences/reference.fasta", buffer_size));
+            },
+        );
+    }
+}
+
+//criterion_group!(b, reference, illumina, nanopore, buffer_size, rust_bio_cache);
+criterion_group!(b, rust_bio_cache_reference, rust_bio_cache_nanopore, rust_bio_cache_illumina);
 criterion_main!(b);

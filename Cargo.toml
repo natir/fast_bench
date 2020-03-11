@@ -15,6 +15,9 @@ seq_io         = "0.3"
 criterion      = "*"
 needletail     = "0.3.2"
 buf-ref-reader = "*"
+tempfile       = "3"
+tokio          = { version = "0.2", features = ["full"] }
+futures	       = "0.3"
 
 [profile.release]
 debug = true
